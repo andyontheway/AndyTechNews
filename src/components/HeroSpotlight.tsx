@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Article } from "@/types";
 import { Flame, Clock, Sparkles, ArrowRight, BatteryCharging, Cpu, Car } from "lucide-react";
+import { getThematicFallbackImage, isBlockedOrMissingImage } from "@/lib/fallback-images";
 
 interface HeroSpotlightProps {
   lead: Article;
@@ -35,7 +36,10 @@ export default function HeroSpotlight({ lead, side }: HeroSpotlightProps) {
 
   const isTopGear = lead.source.includes("Top Gear");
   const isTechPowerUp = lead.source.includes("TechPowerUp");
-  const hasValidLeadImage = Boolean(lead.coverImage && lead.coverImage.trim()) && !leadImgError;
+
+  const leadBlocked = isBlockedOrMissingImage(lead.coverImage);
+  const leadDisplayImage = leadBlocked || leadImgError ? getThematicFallbackImage(lead) : lead.coverImage;
+  const hasValidLeadImage = Boolean(leadDisplayImage && leadDisplayImage.trim());
 
   const handleSideImgError = (id: string) => {
     setSideImgErrors((prev) => ({ ...prev, [id]: true }));
@@ -49,7 +53,7 @@ export default function HeroSpotlight({ lead, side }: HeroSpotlightProps) {
           <div className="relative group rounded-2xl overflow-hidden aspect-[16/10] sm:aspect-[16/9] bg-slate-950 border border-slate-200/80 dark:border-slate-800 shadow-md" style={{ position: "relative" }}>
             {hasValidLeadImage ? (
               <Image
-                src={lead.coverImage}
+                src={leadDisplayImage}
                 alt={lead.title}
                 fill
                 priority
@@ -144,7 +148,9 @@ export default function HeroSpotlight({ lead, side }: HeroSpotlightProps) {
             {side.map((art, idx) => {
               const artIsTopGear = art.source.includes("Top Gear");
               const artIsTechPowerUp = art.source.includes("TechPowerUp");
-              const hasSideImg = Boolean(art.coverImage && art.coverImage.trim()) && !sideImgErrors[art.id];
+              const sideBlocked = isBlockedOrMissingImage(art.coverImage);
+              const sideDisplayImage = sideBlocked || sideImgErrors[art.id] ? getThematicFallbackImage(art) : art.coverImage;
+              const hasSideImg = Boolean(sideDisplayImage && sideDisplayImage.trim());
 
               return (
                 <div
@@ -154,7 +160,7 @@ export default function HeroSpotlight({ lead, side }: HeroSpotlightProps) {
                   {hasSideImg ? (
                     <div className="relative w-20 sm:w-24 aspect-[16/10] rounded-lg overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-800" style={{ position: "relative" }}>
                       <Image
-                        src={art.coverImage}
+                        src={sideDisplayImage}
                         alt={art.title}
                         fill
                         sizes="96px"

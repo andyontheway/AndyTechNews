@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Article } from "@/types";
 import { Clock, BatteryCharging, Cpu, Car, FileText } from "lucide-react";
+import { getThematicFallbackImage, isBlockedOrMissingImage } from "@/lib/fallback-images";
 
 interface ArticleCardProps {
   article: Article;
@@ -43,7 +44,9 @@ export default function ArticleCard({
   const isTopGear = article.source.includes("Top Gear");
   const isTechPowerUp = article.source.includes("TechPowerUp");
 
-  const hasValidImage = Boolean(article.coverImage && article.coverImage.trim()) && !imgError;
+  const isBlocked = isBlockedOrMissingImage(article.coverImage);
+  const displayImage = isBlocked || imgError ? getThematicFallbackImage(article) : article.coverImage;
+  const hasValidImage = Boolean(displayImage && displayImage.trim());
 
   const positionClass =
     article.imagePosition === "top"
@@ -78,7 +81,7 @@ export default function ArticleCard({
         {hasValidImage ? (
           <div className="relative w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-800" style={{ position: "relative" }}>
             <Image
-              src={article.coverImage}
+              src={displayImage}
               alt={article.title}
               fill
               sizes="64px"
@@ -117,7 +120,7 @@ export default function ArticleCard({
         {hasValidImage ? (
           <div className="relative w-20 h-16 rounded-lg overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-800" style={{ position: "relative" }}>
             <Image
-              src={article.coverImage}
+              src={displayImage}
               alt={article.title}
               fill
               sizes="80px"
@@ -154,7 +157,7 @@ export default function ArticleCard({
           /* Locked aspect ratio [16/10], clean image with NO overlay clutter */
           <div className="relative w-full sm:w-44 md:w-48 aspect-[16/10] shrink-0 self-start sm:self-center rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800" style={{ position: "relative" }}>
             <Image
-              src={article.coverImage}
+              src={displayImage}
               alt={article.title}
               fill
               sizes="(max-width: 640px) 100vw, 192px"
@@ -225,7 +228,7 @@ export default function ArticleCard({
         /* Strict locked aspect ratio [16/10] + object-cover object-center: NEVER stretched, 100% clean image with NO overlay tags */
         <div className="relative w-full aspect-[16/10] overflow-hidden bg-slate-100 dark:bg-slate-800" style={{ position: "relative" }}>
           <Image
-            src={article.coverImage}
+            src={displayImage}
             alt={article.title}
             fill
             priority={priority}

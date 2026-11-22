@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getArticleBySlug, getAllArticles, getTrendingArticles, updateArticle } from "@/lib/storage";
 import { fetchFullArticleContent } from "@/lib/scraper";
+import { getThematicFallbackImage, isBlockedOrMissingImage } from "@/lib/fallback-images";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ArticleCard from "@/components/ArticleCard";
@@ -214,20 +215,24 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               {article.excerpt}
             </div>
 
-            {/* Cover Image - Render only if image exists, with locked aspect ratio and centered object-cover */}
-            {article.coverImage && (
-              <div className="relative w-full aspect-[16/9] max-h-[480px] rounded-2xl overflow-hidden mb-8 bg-slate-100 dark:bg-slate-800 shadow-md" style={{ position: "relative" }}>
-                <Image
-                  src={article.coverImage}
-                  alt={article.title}
-                  fill
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 800px"
-                  className="object-cover object-center"
-                  unoptimized
-                />
-              </div>
-            )}
+            {/* Cover Image - Render with fallback for blocked or missing images */}
+            {(() => {
+              const blocked = isBlockedOrMissingImage(article.coverImage);
+              const heroImg = blocked ? getThematicFallbackImage(article) : article.coverImage;
+              return heroImg ? (
+                <div className="relative w-full aspect-[16/9] max-h-[480px] rounded-2xl overflow-hidden mb-8 bg-slate-100 dark:bg-slate-800 shadow-md" style={{ position: "relative" }}>
+                  <Image
+                    src={heroImg}
+                    alt={article.title}
+                    fill
+                    priority
+                    sizes="(max-width: 1024px) 100vw, 800px"
+                    className="object-cover object-center"
+                    unoptimized
+                  />
+                </div>
+              ) : null;
+            })()}
 
             {/* Optional Technical Specifications Card */}
             {article.specs && Object.keys(article.specs).length > 0 && (
