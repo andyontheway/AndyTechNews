@@ -12,6 +12,24 @@ interface CategoryPageProps {
   params: Promise<{ slug: string }>;
 }
 
+export async function generateStaticParams() {
+  const categories = [
+    "tech",
+    "auto",
+    "ev",
+    "pc",
+    "ai",
+    "smartphones",
+    "reviews",
+    "gadgets",
+    "cars",
+    "auto-reviews",
+    "motorbikes",
+    "market",
+  ];
+  return categories.map((slug) => ({ slug }));
+}
+
 export async function generateMetadata({ params }: CategoryPageProps) {
   const { slug } = await params;
   const isTech = slug === "tech" || ["ai", "smartphones", "pc", "reviews", "gadgets"].includes(slug);

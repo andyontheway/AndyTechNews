@@ -27,6 +27,13 @@ interface ArticlePageProps {
   params: Promise<{ slug: string }>;
 }
 
+export async function generateStaticParams() {
+  const articles = getAllArticles();
+  return articles.map((article) => ({
+    slug: article.slug,
+  }));
+}
+
 export async function generateMetadata({ params }: ArticlePageProps) {
   const { slug } = await params;
   const article = getArticleBySlug(slug);
@@ -50,7 +57,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     notFound();
   }
 
-  // Automatically fetch & cache the real in-depth full content from the source if not yet cached
+  // Automatically fetch & cache the real in-depth full content from the source if not yet cached (skip concurrent writes during static export build)
+  const isBuilding = process.env.GITHUB_PAGES === "true" || process.env.NEXT_PHASE === "phase-production-build";
   const isPlaceholderContent =
     !article.content ||
     article.content.length < 500 ||
@@ -58,7 +66,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     article.content.includes("Thông tin chi tiết được xuất bản trực tiếp từ nguồn") ||
     article.content.includes("Nguồn bài viết gốc");
 
-  if (isPlaceholderContent && article.sourceUrl) {
+  if (!isBuilding && isPlaceholderContent && article.sourceUrl) {
     try {
       const fullBody = await fetchFullArticleContent(article);
       if (fullBody && fullBody.length > 250) {

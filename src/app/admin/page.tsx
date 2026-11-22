@@ -86,10 +86,21 @@ export default function AdminPage() {
     try {
       setLoading(true);
       const res = await fetch("/api/articles?limit=500");
-      const data = await res.json();
-      setArticles(data);
+      if (res.ok) {
+        const data = await res.json();
+        setArticles(data);
+      } else {
+        throw new Error("API not available, fallback to static data");
+      }
     } catch (err) {
-      console.error("Failed to load articles", err);
+      console.warn("Using static articles fallback for admin:", err);
+      try {
+        const fallbackRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/data/articles.json`);
+        const fallbackData = await fallbackRes.json();
+        setArticles(fallbackData);
+      } catch (e) {
+        console.error("Failed to load static fallback data", e);
+      }
     } finally {
       setLoading(false);
     }
